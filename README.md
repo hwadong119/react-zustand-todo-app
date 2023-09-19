@@ -1,70 +1,118 @@
-# Getting Started with Create React App
+## zustand 설치
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+```terminal
+npm install zustand
+```
 
-## Available Scripts
+<br><br>
 
-In the project directory, you can run:
+## store 생성
 
-### `npm start`
+- store 생성 후 안에 원하는 값과 그 값을 업데이트 해주는 함수를 넣음
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- store는 hooks로 되어있음
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- store를 생성할 때 create 메서드를 사용하여 선언
 
-### `npm test`
+- set 함수는 상태를 변경
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```javascript
+import { create } from "zustand";
 
-### `npm run build`
+export const useCounterStore = create((set) => ({
+  count: 1,
+  increment: () => set((state) => ({ count: state.count + 1}))
+}))
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+<br><br>
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## persist middleware를 이용하여 저장소의 데이터 유지하기
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+persist()에 감싸주기만 하면 됨
 
-### `npm run eject`
+```javascript
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+import { create } from "zustand";
+import { persist } from 'zustand/middleware'
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+export const useCounterStore = create(
+  persist(
+    (set) => ({
+      count: 1,
+      increment: () => set((state) => ({ count: state.count + 1})),
+      reset: () => set({ count: 1}),
+      setNumber: (number) => set({ count: number })
+    }),
+    { name: 'counter' }
+  )
+)
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+<br><br>
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## storage 데이터 지우기
 
-## Learn More
+```javascript
+const clear = () => {
+    useCounterStore.persist.clearStorage();
+}
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+return (
+    <div>
+      <button onClick={clear}>clear</button>
+    </div>
+  )
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+<br><br>
 
-### Code Splitting
+## DevTools 이용하기
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- Zustand는 리덕스 DevTools를 이용할 수 있음
 
-### Analyzing the Bundle Size
+- middleware devtools로 감싸주면 됨
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+```javascript
+import { create } from "zustand";
+import { persist, devtools } from 'zustand/middleware'
 
-### Making a Progressive Web App
+export const useCounterStore = create(
+  persist(
+    devtools(
+      (set) => ({
+        count: 1,
+        increment: () => set((state) => ({ count: state.count + 1})),
+        reset: () => set({ count: 1}),
+        setNumber: (number) => set({ count: number })
+      }),
+      { name: 'counter' }
+    )
+  )
+)
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+<br><br>
 
-### Advanced Configuration
+## 소스코드 정리하기
+```javascript
+import { create } from "zustand";
+import { persist, devtools } from 'zustand/middleware'
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+let counterStore = (set) => ({
+  count: 1,
+  increment: () => set((state) => ({ count: state.count + 1})),
+  reset: () => set({ count: 1}),
+  setNumber: (number) => set({ count: number })
+})
 
-### Deployment
+counterStore = devtools(counterStore);
+counterStore = persist(counterStore, { name: 'counter' });
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+export const useCounterStore = create(counterStore);
+```
 
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+<br><br>
+<br><br>
+<br><br>
+<br><br>
